@@ -113,8 +113,14 @@ class TouchZoomRotateHandler {
     }
 
     onStart(e: TouchEvent) {
+        console.log(`[touch_zoom_rotate.js] TOUCHSTART`);
+        console.log(e);
+
         if (!this.isEnabled()) return;
         if (e.touches.length !== 2) return;
+
+        console.log(`[touch_zoom_rotate.js] checks pass, doing stuff`);
+        console.log(`[touch_zoom_rotate.js] dragPan enabled? ${this._map.dragPan.isEnabled()} active? ${this._map.dragPan.isActive()}`);
 
         const p0 = DOM.mousePos(this._el, e.touches[0]),
             p1 = DOM.mousePos(this._el, e.touches[1]),
@@ -143,7 +149,10 @@ class TouchZoomRotateHandler {
     }
 
     _onMove(e: TouchEvent) {
+        console.log(`[touch_zoom_rotate.js] MOVE`);
         if (e.touches.length !== 2) return;
+        console.log(`[touch_zoom_rotate.js] moving`);
+
 
         const {vec, scale, bearing} = this._getTouchEventData(e);
 
@@ -208,6 +217,9 @@ class TouchZoomRotateHandler {
     }
 
     _onEnd(e: TouchEvent) {
+        console.log(`[touch_zoom_rotate.js] TOUCHEND`);
+        console.log(e);
+
         DOM.removeEventListener(window.document, 'touchmove', this._onMove, {passive: false});
         DOM.removeEventListener(window.document, 'touchend', this._onEnd);
 

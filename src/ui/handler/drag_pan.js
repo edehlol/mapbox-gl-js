@@ -80,6 +80,7 @@ class DragPanHandler {
         if (this.isEnabled()) return;
         this._el.classList.add('mapboxgl-touch-drag-pan');
         this._state = 'enabled';
+        console.log('[drag_pan.js] ENABLED');
     }
 
     /**
@@ -107,6 +108,7 @@ class DragPanHandler {
             this._state = 'disabled';
             break;
         }
+        console.log('[drag_pan.js] DISABLED');
     }
 
     onMouseDown(e: MouseEvent) {
@@ -125,8 +127,12 @@ class DragPanHandler {
     }
 
     onTouchStart(e: TouchEvent) {
+        console.log(`[drag_pan.js] TOUCHSTART`);
+        console.log(e);
         if (this._state !== 'enabled') return;
         if (e.touches.length > 1) return;
+
+        console.log(`[drag_pan.js] checks pass, doing stuff`);
 
         // Bind window-level event listeners for touchmove/end events. In the absence of
         // the pointer capture API, which is not supported by all necessary platforms,
@@ -150,7 +156,15 @@ class DragPanHandler {
     }
 
     _onMove(e: MouseEvent | TouchEvent) {
+        console.log('[drag_pan.js] MOVE');
+        console.log(`[drag_pan.js] # touches: ${e.touches.length}`);
+        console.log(`[drag_pan.js] pos: ${DOM.mousePos(this._el, e).x}, ${DOM.mousePos(this._el, e).y}`);
+
         e.preventDefault();
+
+        console.log('[drag_pan.js] moving');
+
+
 
         const pos = DOM.mousePos(this._el, e);
         if (this._lastPos.equals(pos) || (this._state === 'pending' && pos.dist(this._mouseDownPos) < this._clickTolerance)) {
@@ -180,6 +194,8 @@ class DragPanHandler {
      * @private
      */
     _onDragFrame() {
+        console.log(`[drag_pan.js] DRAGFRAME`);
+        console.log(`[drag_pan.js] frameId: ${this._frameId}, startPos: (${this._startPos.x},${this._startPos.y}), lastPos: (${this._lastPos.x}, ${this._lastPos.y})`);
         this._frameId = null;
 
         const e = this._lastMoveEvent;
@@ -214,6 +230,9 @@ class DragPanHandler {
     }
 
     _onTouchEnd(e: TouchEvent) {
+        console.log('[drag_pan.js] TOUCHEND');
+        console.log(e);
+
         switch (this._state) {
         case 'active':
             this._state = 'enabled';
