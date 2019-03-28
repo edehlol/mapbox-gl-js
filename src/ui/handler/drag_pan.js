@@ -157,8 +157,11 @@ class DragPanHandler {
 
     _onMove(e: MouseEvent | TouchEvent) {
         console.log('[drag_pan.js] MOVE');
-        console.log(`[drag_pan.js] # touches: ${e.touches.length}`);
-        console.log(`[drag_pan.js] pos: ${DOM.mousePos(this._el, e).x}, ${DOM.mousePos(this._el, e).y}`);
+        if (e.touches) {
+
+            console.log(`[drag_pan.js] # touches: ${e.touches.length}`);
+            console.log(`[drag_pan.js] pos: ${DOM.mousePos(this._el, e).x}, ${DOM.mousePos(this._el, e).y}`);
+        }
 
         if (e.touches.length !== 1) return; // another finger(s) added since touchstart; avoid duplicate pan wrt TouchZoomRotateHandler
 
@@ -197,7 +200,9 @@ class DragPanHandler {
      */
     _onDragFrame() {
         console.log(`[drag_pan.js] DRAGFRAME`);
-        console.log(`[drag_pan.js] frameId: ${this._frameId}, startPos: (${this._startPos.x},${this._startPos.y}), lastPos: (${this._lastPos.x}, ${this._lastPos.y})`);
+        console.log(`[drag_pan.js] frameId: ${this._frameId}`);
+        console.log(this._startPos ? `startPos: (${this._startPos.x},${this._startPos.y})` : `startPos: ${this._startPos}`);
+        console.log(this._lastPos ? `lastPos: (${this._lastPos.x}, ${this._lastPos.y})` : `lastPos: ${this._lastPos}`);
         this._frameId = null;
 
         const e = this._lastMoveEvent;

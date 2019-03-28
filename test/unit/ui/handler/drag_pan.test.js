@@ -4,7 +4,9 @@ import Map from '../../../../src/ui/map';
 import DOM from '../../../../src/util/dom';
 import simulate from 'mapbox-gl-js-test/simulate_interaction';
 
+
 function createMap(t, clickTolerance) {
+    t.stub(console, 'error').callsFake(console.log);
     t.stub(Map.prototype, '_detectMissingCSS');
     return new Map({ container: DOM.create('div', '', window.document.body), clickTolerance: clickTolerance || 0 });
 }
