@@ -47,6 +47,7 @@ class DragPanHandler {
             '_onMove',
             '_onMouseUp',
             '_onTouchEnd',
+            '_onMultiTouchEnd',
             '_onBlur',
             '_onDragFrame'
         ], this);
@@ -129,8 +130,15 @@ class DragPanHandler {
     onTouchStart(e: TouchEvent) {
         console.log(`[drag_pan.js] TOUCHSTART`);
         console.log(e);
-        if (this._state !== 'enabled') return;
-        if (e.touches.length > 1) return; //TODO Disable & then re-enable+start on multi-touch touchend?
+        if (!this.isEnabled()) return;
+        if (e.touches && e.touches.length > 1) {
+            // If we're already dragging with one finger and the user adds another finger(s),
+            // let TouchZoomRotateHandler handler take over if it's enabled by stopping the drag
+            if ((this._state === 'pending' || this._state === 'active') && this._map.touchZoomRotate.isEnabled()) {
+                this._onMultiTouchStart(e);
+            }
+            return;
+        }
 
         console.log(`[drag_pan.js] checks pass, doing stuff`);
 
@@ -163,7 +171,7 @@ class DragPanHandler {
             console.log(`[drag_pan.js] pos: ${DOM.mousePos(this._el, e).x}, ${DOM.mousePos(this._el, e).y}`);
         }
 
-        if (e.touches && e.touches.length !== 1) return; // another finger(s) added since touchstart; avoid duplicate pan wrt TouchZoomRotateHandler
+        // if (e.touches && e.touches.length !== 1) return; // another finger(s) added since touchstart; avoid duplicate pan wrt TouchZoomRotateHandler
 
         e.preventDefault();
 
@@ -240,7 +248,7 @@ class DragPanHandler {
         console.log('[drag_pan.js] TOUCHEND');
         console.log(e);
 
-        // if (e.touches.length > 0) return; // only deactivate when the last finger has left the screen
+        // if (e.touches && e.touches.length > 0) return; // only deactivate when the last finger has left the screen
 
         switch (this._state) {
         case 'active':
@@ -258,6 +266,50 @@ class DragPanHandler {
             break;
         }
     }
+
+    _onMultiTouchStart(e: TouchEvent) {
+        // Additional fingers are now touching; treat this almost like a touchend & stop dragging,
+        // but listen for touchend events in case we go back to a single-finger touch
+        switch (this._state) {
+        case 'active':
+            this._state = 'enabled';
+            this._unbind();
+            this._deactivate();
+            this._fireEvent('dragend', e);
+            this._fireEvent('moveend', e);
+            DOM.addEventListener(window.document, 'touchend', this._onMultiTouchEnd);
+            break;
+        case 'pending':
+            this._state = 'enabled';
+            this._unbind();
+            DOM.addEventListener(window.document, 'touchend', this._onMultiTouchEnd);
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+
+    _onMultiTouchEnd(e: TouchEvent) {
+        if (e.touches && e.touches.length > 1) return; // there are still multiple fingers touching; wait
+
+        DOM.removeEventListener(window.document, 'touchend', this._onMultiTouchEnd);
+
+        if (!e.touches || e.touches.length === 0) return; // all fingers were removed at once; nothing left to do
+
+        // Back to single-touch (e.touches.length === 1); treat this like a touchstart
+
+        // Bind window-level event listeners for touchmove/end events. In the absence of
+        // the pointer capture API, which is not supported by all necessary platforms,
+        // window-level event listeners give us the best shot at capturing events that
+        // fall outside the map canvas element. Use `{capture: true}` for the move event
+        // to prevent map move events from being fired during a drag.
+        DOM.addEventListener(window.document, 'touchmove', this._onMove, {capture: true, passive: false});
+        DOM.addEventListener(window.document, 'touchend', this._onTouchEnd);
+
+        this._start(e);
+    }
+
 
     _onBlur(e: FocusEvent) {
         switch (this._state) {
