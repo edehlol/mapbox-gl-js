@@ -130,7 +130,7 @@ class DragPanHandler {
         console.log(`[drag_pan.js] TOUCHSTART`);
         console.log(e);
         if (this._state !== 'enabled') return;
-        if (e.touches.length > 1) return;
+        if (e.touches.length > 1) return; //TODO Disable & then re-enable+start on multi-touch touchend?
 
         console.log(`[drag_pan.js] checks pass, doing stuff`);
 
@@ -159,6 +159,8 @@ class DragPanHandler {
         console.log('[drag_pan.js] MOVE');
         console.log(`[drag_pan.js] # touches: ${e.touches.length}`);
         console.log(`[drag_pan.js] pos: ${DOM.mousePos(this._el, e).x}, ${DOM.mousePos(this._el, e).y}`);
+
+        if (e.touches.length !== 1) return; // another finger(s) added since touchstart; avoid duplicate pan wrt TouchZoomRotateHandler
 
         e.preventDefault();
 
@@ -232,6 +234,8 @@ class DragPanHandler {
     _onTouchEnd(e: TouchEvent) {
         console.log('[drag_pan.js] TOUCHEND');
         console.log(e);
+
+        if (e.touches.length > 0) return; // only deactivate when the last finger has left the screen
 
         switch (this._state) {
         case 'active':

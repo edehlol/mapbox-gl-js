@@ -36,6 +36,7 @@ class TouchZoomRotateHandler {
     _inertia: Array<[number, number, Point]>;
     _lastTouchEvent: TouchEvent;
     _frameId: ?TaskID;
+    // _overridingDragPan: boolean;
 
     /**
      * @private
@@ -121,6 +122,15 @@ class TouchZoomRotateHandler {
 
         console.log(`[touch_zoom_rotate.js] checks pass, doing stuff`);
         console.log(`[touch_zoom_rotate.js] dragPan enabled? ${this._map.dragPan.isEnabled()} active? ${this._map.dragPan.isActive()}`);
+
+        if (this._map.dragPan.isEnabled() && this._map.dragPan.isActive()) {
+            // This is a second finger being added after a drag pan was already started with one finger;
+            // override the single-finger dragPan zoom to avoid duplicate zoom events
+            // console.log('[touch_zoom_rotate.js] OVERRIDING DRAG PAN');
+            // this._map.dragPan.disable();
+            // this._overridingDragPan = true;
+
+        }
 
         const p0 = DOM.mousePos(this._el, e.touches[0]),
             p1 = DOM.mousePos(this._el, e.touches[1]),
